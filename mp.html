@@ -1,0 +1,68 @@
+<script src="https://sdk.mercadopago.com/js/v2"></script>
+
+<form id="paymentForm">
+  <input type="text" id="form-cardholderName" placeholder="Nome no cartão" />
+  <input type="email" id="form-cardholderEmail" placeholder="E-mail do pagador" />
+  <input type="text" id="form-cardNumber" placeholder="Número do cartão" />
+  <input type="text" id="form-cardExpirationMonth" placeholder="MM" size="2" />
+  <input type="text" id="form-cardExpirationYear" placeholder="YY" size="2" />
+  <input type="text" id="form-securityCode" placeholder="CVV" />
+  <input type="text" id="form-docNumber" placeholder="CPF" />
+  <select id="form-docType"></select>
+  <select id="form-installments"></select>
+  <button type="submit">Pagar</button>
+</form>
+
+<script>
+  const mp = new MercadoPago('TEST-139c48c4-839b-41dd-a5ba-e72a2639baf3', {
+    locale: 'pt-BR'
+  });
+
+  const cardForm = mp.cardForm({
+    amount: "100.00", // valor da compra
+    autoMount: true,
+    form: {
+      id: "paymentForm",
+      cardholderName: { id: "form-cardholderName" },
+      cardholderEmail: { id: "form-cardholderEmail" },
+      cardNumber: { id: "form-cardNumber" },
+      cardExpirationMonth: { id: "form-cardExpirationMonth" },
+      cardExpirationYear: { id: "form-cardExpirationYear" },
+      securityCode: { id: "form-securityCode" },
+      installments: { id: "form-installments" },
+      docType: { id: "form-docType" },
+      docNumber: { id: "form-docNumber" }
+    },
+    callbacks: {
+      onSubmit: event => {
+        event.preventDefault();
+
+        const data = cardForm.getCardFormData();
+
+        fetch("https://webhookn8n.ktecheletronicos.com.br/webhook/pagamento-link", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            token: data.token,
+            transaction_amount: 100.00,
+            payment_method_id: data.paymentMethodId,
+            installments: Number(data.installments),
+            issuer_id: data.issuerId,
+            description: "Produto Teste",
+            payer: {
+              email: data.cardholderEmail,
+              identification: {
+                type: data.identificationType,
+                number: data.identificationNumber
+              }
+            }
+          })
+        })
+        .then(res => res.json())
+        .then(result => {
+          alert("Status: " + result.status);
+        });
+      }
+    }
+  });
+</script>
