@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Análise de Gastos - Nubank</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #8B5CF6 0%, #A855F7 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+        
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 2rem;
+        }
+        
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .card {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        
+        .card h3 {
+            color: #4338ca;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+        
+        .card .value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #1f2937;
+        }
+        
+        .tabs {
+            display: flex;
+            background: #f1f5f9;
+            border-radius: 10px;
+            padding: 0.5rem;
+            margin-bottom: 2rem;
+            overflow-x: auto;
+        }
+        
+        .tab-button {
+            background: none;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+        
+        .tab-button.active {
+            background: linear-gradient(135deg, #8B5CF6 0%, #A855F7 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+        }
+        
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .table-container {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            margin-bottom: 2rem;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        th {
+            background: linear-gradient(135deg, #8B5CF6 0%, #A855F7 100%);
+            color: white;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+        }
+        
+        tbody tr:hover {
+            background: #f8fafc;
+            transform: scale(1.01);
+            transition: all 0.2s ease;
+        }
+        
+        .category-transport { border-left: 4px solid #ef4444; }
+        .category-assinaturas { border-left: 4px solid #3b82f6; }
+        .category-parcelamentos { border-left: 4px solid #10b981; }
+        .category-alimentacao { border-left: 4px solid #f59e0b; }
+        .category-saude { border-left: 4px solid #8b5cf6; }
+        .category-diversos { border-left: 4px solid #6b7280; }
+        .category-encargos { border-left: 4px solid #dc2626; }
+        
+        .chart-container {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            margin-bottom: 2rem;
+        }
+        
+        .expense-bar {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding: 0.75rem;
+            border-radius: 10px;
+            background: #f8fafc;
+        }
+        
+        .expense-category {
+            min-width: 150px;
+            font-weight: 600;
+            color: #374151;
+        }
+        
+        .expense-progress {
+            flex: 1;
+            height: 20px;
+            background: #e5e7eb;
+            border-radius: 10px;
+            margin: 0 1rem;
+            overflow: hidden;
+        }
+        
+        .expense-fill {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 1s ease-in-out;
+        }
+        
+        .expense-value {
+            font-weight: bold;
+            min-width: 100px;
+            text-align: right;
+            color: #1f2937;
+        }
+        
+        .insights {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .insight-card {
+            background: linear-gradient(135deg, #fef7ff 0%, #f3e8ff 100%);
+            border-radius: 15px;
+            padding: 1.5rem;
+            border: 1px solid #e9d5ff;
+        }
+        
+        .insight-card h4 {
+            color: #7c3aed;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .icon {
+            width: 20px;
+            height: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 { font-size: 1.8rem; }
+            .content { padding: 1rem; }
+            .summary-cards { grid-template-columns: 1fr; }
+            .tabs { flex-direction: column; }
+            .tab-button { text-align: center; }
+            th, td { padding: 0.5rem; font-size: 0.85rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💳 Análise Financeira Detalhada</h1>
+            <p>Fatura Nubank • Período: 26 JUL - 26 AGO 2025 • Laila Luarda</p>
+        </div>
+        
+        <div class="content">
+            <!-- Cards de Resumo -->
+            <div class="summary-cards">
+                <div class="card">
+                    <h3>💰 Total da Fatura</h3>
+                    <div class="value">R$ 2.210,76</div>
+                </div>
+                <div class="card">
+                    <h3>🛒 Total de Compras</h3>
+                    <div class="value">R$ 2.152,72</div>
+                </div>
+                <div class="card">
+                    <h3>📊 Número de Transações</h3>
+                    <div class="value">85</div>
+                </div>
+                <div class="card">
+                    <h3>💳 Limite Utilizado</h3>
+                    <div class="value">46,97%</div>
+                </div>
+                <div class="card">
+                    <h3>📅 Vencimento</h3>
+                    <div class="value" style="font-size: 1.2rem;">02 SET</div>
+                </div>
+            </div>
+            
+            <!-- Tabs -->
+            <div class="tabs">
+                <button class="tab-button active" onclick="showTab('categoria')">📊 Por Categoria</button>
+                <button class="tab-button" onclick="showTab('detalhada')">📋 Planilha Detalhada</button>
+                <button class="tab-button" onclick="showTab('temporal')">📈 Análise Temporal</button>
+                <button class="tab-button" onclick="showTab('insights')">💡 Insights</button>
+            </div>
+            
+            <!-- Conteúdo das Tabs -->
+            
+            <!-- Tab Categoria -->
+            <div id="categoria" class="tab-content active">
+                <div class="chart-container">
+                    <h3 style="margin-bottom: 1.5rem; color: #374151;">Gastos por Categoria</h3>
+                    <div class="expense-bar">
+                        <div class="expense-category">🚗 Transporte</div>
+                        <div class="expense-progress">
+                            <div class="expense-fill" style="width: 100%; background: linear-gradient(90deg, #ef4444, #dc2626);"></div>
+                        </div>
+                        <div class="expense-value">R$ 715,76 (33,25%)</div>
+                    </div>
+                    <div class="expense-bar">
+                        <div class="expense-category">📱 Assinaturas</div>
+                        <div class="expense-progress">
+                            <div class="expense-fill" style="width: 65%; background: linear-gradient(90deg, #3b82f6, #2563eb);"></div>
+                        </div>
+                        <div class="expense-value">R$ 462,95 (21,51%)</div>
+                    </div>
+                    <div class="expense-bar">
+                        <div class="expense-category">💳 Parcelamentos</div>
+                        <div class="expense-progress">
+                            <div class="expense-fill" style="width: 45%; background: linear-gradient(90deg, #10b981, #059669);"></div>
+                        </div>
+                        <div class="expense-value">R$ 327,68 (15,22%)</div>
+                    </div>
+                    <div class="expense-bar">
+                        <div class="expense-category">🍕 Alimentação</div>
+                        <div class="expense-progress">
+                            <div class="expense-fill" style="width: 35%; background: linear-gradient(90deg, #f59e0b, #d97706);"></div>
+                        </div>
+                        <div class="expense-value">R$ 253,38 (11,77%)</div>
+                    </div>
+                    <div class="expense-bar">
+                        <div class="expense-category">🏥 Saúde</div>
+                        <div class="expense-progress">
+                            <div class="expense-fill" style="width: 30%; background: linear-gradient(90deg, #8b5cf6, #7c3aed);"></div>
+                        </div>
+                        <div class="expense-value">R$ 224,82 (10,45%)</div>
+                    </div>
+                    <div class="expense-bar">
+                        <div class="expense-category">🛍️ Diversos</div>
+                        <div class="expense-progress">
+                            <div class="expense-fill" style="width: 15%; background: linear-gradient(90deg, #6b7280, #4b5563);"></div>
+                        </div>
+                        <div class="expense-value">R$ 168,13 (7,80%)</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Tab Detalhada -->
+            <div id="detalhada" class="tab-content">
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Descrição</th>
+                                <th>Categoria</th>
+                                <th>Valor</th>
+                                <th>Cartão</th>
+                            </tr>
+                        </thead>
+                        <tbody id="transactionTable">
+                            <!-- Transações serão inseridas aqui via JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Tab Temporal -->
+            <div id="temporal" class="tab-content">
+                <div class="chart-container">
+                    <h3 style="margin-bottom: 1.5rem; color: #374151;">Gastos por Período</h3>
+                    <div class="expense-bar">
+                        <div class="expense-category">📅 26-31 JUL</div>
+                        <div class="expense-progress">
+                            <div class="expense-fill" style="width: 100%; background: linear-gradient(90deg, #f59e0b, #d97706);"></div>
+                        </div>
+                        <div class="expense-value">R$ 567,22 (26,36%)</div>
+                    </div>
+                    <div class="expense-bar">
+                        <div class="expense-category">📅 01-07 AGO</div>
+                        <div class="expense-progress">
+                            <div class="expense-fill" style="width: 85%; background: linear-gradient(90deg, #10b981, #059669);"></div>
+                        </div>
+                        <div class="expense-value">R$ 483,45 (22,47%)</div>
+                    </div>
+                    <div class="expense-bar">
+                        <div class="expense-category">📅 08-14 AGO</div>
+                        <div class="expense-progress">
+                            <div class="expense-fill" style="width: 65%; background: linear-gradient(90deg, #3b82f6, #2563eb);"></div>
+                        </div>
+                        <div class="expense-value">R$ 370,28 (17,21%)</div>
+                    </div>
+                    <div class="expense-bar">
+                        <div class="expense-category">📅 15-21 AGO</div>
+                        <div class="expense-progress">
+                            <div class="expense-fill" style="width: 50%; background: linear-gradient(90deg, #8b5cf6, #7c3aed);"></div>
+                        </div>
+                        <div class="expense-value">R$ 285,67 (13,28%)</div>
+                    </div>
+                    <div class="expense-bar">
+                        <div class="expense-category">📅 22-26 AGO</div>
+                        <div class="expense-progress">
+                            <div class="expense-fill" style="width: 40%; background: linear-gradient(90deg, #ef4444, #dc2626);"></div>
+                        </div>
+                        <div class="expense-value">R$ 446,10 (20,73%)</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Tab Insights -->
+            <div id="insights" class="tab-content">
+                <div class="insights">
+                    <div class="insight-card">
+                        <h4>🚗 Maior Categoria de Gastos</h4>
+                        <p><strong>Transporte representa 33,25%</strong> dos seus gastos totais (R$ 715,76). Foram 52 transações entre Uber e 99, com média de R$ 13,76 por viagem.</p>
+                    </div>
+                    
+                    <div class="insight-card">
+                        <h4>📱 Gastos Recorrentes</h4>
+                        <p><strong>R$ 462,95 em assinaturas</strong> incluindo Apple (R$ 140,59), Amazon Prime (R$ 19,90), iFood Club (R$ 5,95) e outras. Representam 21,51% do total.</p>
+                    </div>
+                    
+                    <div class="insight-card">
+                        <h4>💳 Parcelamentos Ativos</h4>
+                        <p><strong>7 parcelamentos em andamento</strong> totalizando R$ 327,68. Destaque para Netshoes (parcela 2/3 - R$ 146,59) e Leiturinha (4/12 - R$ 42,90).</p>
+                    </div>
+                    
+                    <div class="insight-card">
+                        <h4>📊 Padrão de Consumo</h4>
+                        <p><strong>Média diária: R$ 69,44</strong>. Maior concentração de gastos no início do mês. Transações pequenas frequentes indicam uso cotidiano.</p>
+                    </div>
+                    
+                    <div class="insight-card">
+                        <h4>⚠️ Pontos de Atenção</h4>
+                        <p><strong>Encargos de R$ 58,04</strong> por atraso anterior. Juros de 16,1% a.m. no rotativo. Importante manter pagamentos em dia.</p>
+                    </div>
+                    
+                    <div class="insight-card">
+                        <h4>💡 Recomendações</h4>
+                        <p><strong>Considere:</strong> Revisar assinaturas não utilizadas, usar transporte público quando possível, e sempre pagar a fatura integral para evitar juros altos.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function showTab(tabName) {
+            // Ocultar todos os conteúdos
+            const contents = document.querySelectorAll('.tab-content');
+            contents.forEach(content => content.classList.remove('active'));
+            
+            // Remover classe active de todos os botões
+            const buttons = document.querySelectorAll('.tab-button');
+            buttons.forEach(button => button.classList.remove('active'));
+            
+            // Mostrar conteúdo selecionado
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+            
+            // Carregar dados da tabela detalhada se necessário
+            if (tabName === 'detalhada') {
+                loadDetailedTable();
+            }
+        }
+        
+        function loadDetailedTable() {
+            const transactions = [
+                {date: '26 JUL', desc: 'Cantinho Doce - Parcela 3/3', category: 'Parcelamentos', value: 'R$ 45,89', card: '2308'},
+                {date: '26 JUL', desc: 'Mp *Lepetit - Parcela 3/3', category: 'Parcelamentos', value: 'R$ 42,00', card: '2575'},
+                {date: '26 JUL', desc: 'Produtosuol', category: 'Assinaturas', value: 'R$ 19,90', card: '2575'},
+                {date: '26 JUL', desc: 'Pague Menos - NuPay - Parcela 2/2', category: 'Parcelamentos', value: 'R$ 62,34', card: 'NuPay'},
+                {date: '26 JUL', desc: 'Produtos Globo - Parcela 2/12', category: 'Parcelamentos', value: 'R$ 29,90', card: '2575'},
+                {date: '26 JUL', desc: 'Unidunite - Parcela 2/2', category: 'Parcelamentos', value: 'R$ 63,95', card: '2575'},
+                {date: '26 JUL', desc: 'Uber* Trip', category: 'Transporte', value: 'R$ 19,82', card: '7954'},
+                {date: '26 JUL', desc: 'Lojaleiturinha-543829 - Parcela 2/2', category: 'Parcelamentos', value: 'R$ 27,40', card: '2575'},
+                {date: '26 JUL', desc: 'Mlp*Netshoes - Parcela 2/3', category: 'Parcelamentos', value: 'R$ 146,59', card: '2575'},
+                {date: '26 JUL', desc: 'Leiturinha S.A - Parcela 4/12', category: 'Parcelamentos', value: 'R$ 42,90', card: '2575'},
+                {date: '27-31 JUL', desc: 'Diversas viagens Uber/99', category: 'Transporte', value: 'R$ 147,68', card: 'Vários'},
+                {date: '01 AGO', desc: 'Apple.Com/Bill', category: 'Assinaturas', value: 'R$ 17,90', card: '2575'},
+                {date: '03 AGO', desc: 'Apple.Com/Bill', category: 'Assinaturas', value: 'R$ 49,99', card: '2575'},
+                {date: '06 AGO', desc: 'Mercadopago *Danielsa', category: 'Alimentação', value: 'R$ 105,24', card: '2575'},
+                {date: '07 AGO', desc: 'Ana Karoline Santos Ca', category: 'Diversos', value: 'R$ 100,00', card: '2308'},
+                {date: '07 AGO', desc: 'Sa Suplementos Renasc', category: 'Saúde', value: 'R$ 19,00', card: '2308'},
+                {date: '11 AGO', desc: 'Apple.Com/Bill', category: 'Assinaturas', value: 'R$ 34,90', card: '2575'},
+                {date: '18 AGO', desc: 'Apple.Com/Bill', category: 'Assinaturas', value: 'R$ 17,90', card: '2575'},
+                {date: '21 AGO', desc: 'Unidunite', category: 'Diversos', value: 'R$ 29,90', card: '2575'},
+                {date: '21 AGO', desc: 'Unidunite', category: 'Diversos', value: 'R$ 45,00', card: '2575'},
+                {date: '21 AGO', desc: 'Amazonprimebr', category: 'Assinaturas', value: 'R$ 19,90', card: '2575'},
+                {date: '23 AGO', desc: 'Ifd*Ifood Club', category: 'Assinaturas', value: 'R$ 5,95', card: '2575'},
+                {date: '23 AGO', desc: 'Simplifit Sudeste', category: 'Saúde', value: 'R$ 139,90', card: '2236'},
+                {date: '24 AGO', desc: 'Apple.Com/Bill', category: 'Assinaturas', value: 'R$ 19,90', card: '2575'},
+                {date: '18 AGO', desc: 'HUMANA ASSISTENCIA MEDICA LTDA', category: 'Saúde', value: 'R$ 405,52', card: 'Financ.'},
+            ];
+            
+            const tableBody = document.getElementById('transactionTable');
+            tableBody.innerHTML = '';
+            
+            transactions.forEach(transaction => {
+                const row = document.createElement('tr');
+                const categoryClass = getCategoryClass(transaction.category);
+                row.className = categoryClass;
+                
+                row.innerHTML = `
+                    <td>${transaction.date}</td>
+                    <td>${transaction.desc}</td>
+                    <td>${transaction.category}</td>
+                    <td style="font-weight: bold; color: #dc2626;">${transaction.value}</td>
+                    <td>••••${transaction.card}</td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
+        }
+        
+        function getCategoryClass(category) {
+            const classes = {
+                'Transporte': 'category-transport',
+                'Assinaturas': 'category-assinaturas',
+                'Parcelamentos': 'category-parcelamentos',
+                'Alimentação': 'category-alimentacao',
+                'Saúde': 'category-saude',
+                'Diversos': 'category-diversos',
+                'Encargos': 'category-encargos'
+            };
+            return classes[category] || 'category-diversos';
+        }
+        
+        // Animação das barras de progresso
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                const fills = document.querySelectorAll('.expense-fill');
+                fills.forEach(fill => {
+                    const width = fill.style.width;
+                    fill.style.width = '0%';
+                    setTimeout(() => {
+                        fill.style.width = width;
+                    }, 100);
+                });
+            }, 500);
+        });
+    </script>
+</body>
+</html>
