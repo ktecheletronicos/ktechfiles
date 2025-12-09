@@ -1,0 +1,74 @@
+/* Garantir que o body e html ocupem toda a altura da tela */
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden; /* Evita barras de rolagem desnecessárias */
+}
+
+/* Container principal que divide a tela entre a esquerda (A e B) e a direita (C) */
+.iframe-container {
+    display: flex;
+    width: 100%;
+    height: 100vh; /* 100% da altura da tela */
+}
+
+/* Lado esquerdo que contém os iframes A e B empilhados */
+.left-container {
+    display: flex;
+    flex-direction: column; /* Empilhar A e B verticalmente */
+    width: 45%;
+    height: 100%;
+}
+
+/* Iframe A (superior esquerdo) */
+#a {
+    height: 27%;
+    width: 100%;
+    border: none;
+}
+
+/* Iframe B (intermediario esquerdo) */
+#b {
+    height: 45%;
+    width: 100%;
+    border: none;
+}
+
+/* Iframe B1 (inferior esquerdo) */
+#b1 {
+    
+    width: 60%;
+    border: none;
+}
+/* Iframe B2 (inferior esquerdo) */
+#b2 {
+    
+    width: 40%;
+    border: none;
+}
+
+/* Container para B1 e B2 lado a lado */
+.bottom-row {
+    display: flex;
+    width: 100%;
+    height: 28%;
+}
+
+/* Lado direito (iframe C, cortado 50px acima e abaixo) */
+.right-container {
+    width: 55%;
+    height: 100%;
+    display: flex;
+    align-items: center; /* Centraliza verticalmente */
+    overflow: hidden;
+}
+
+/* Iframe C (cortado 50px acima e abaixo) */
+#c {
+    width: 100%;
+    height: calc(100% + 120px); /* Aumenta o tamanho total para compensar o corte */
+    border: none;
+    margin-top: -60px; /* Move 50px para cima */
+    margin-bottom: -60px; /* Move 50px para baixo */
+}
