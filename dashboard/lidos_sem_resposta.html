@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Dados do Google Sheets ktech</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f9f9f9;
+      margin: 5px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      background-color: #fff;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    th, td {
+      padding: 8px 10px;
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    th {
+      background-color: #f0f2f5;
+      font-weight: 600;
+      font-size: 13px;
+      color: #333;
+      border-bottom: 1px solid #ddd;
+    }
+
+    td {
+      font-size: 12px;
+      color: #555;
+      border-bottom: 1px solid #f1f1f1;
+    }
+
+    tbody tr:hover {
+      background-color: #f7faff;
+    }
+
+    .linha-piscando {
+      animation: piscando 2s infinite;
+    }
+
+    @keyframes piscando {
+      0%, 100% { background-color: #fff7cc; } /* amarelo bem claro */
+      50% { background-color: #ffffff; }
+    }
+
+    @keyframes piscando-forte {
+      0%, 100% { background-color: #ffe680; } /* amarelo médio */
+      50% { background-color: #ffffff; }
+    }
+
+    .linha-atraso-forte {
+      animation: piscando-forte 3s infinite;
+    }
+
+    @keyframes piscando-extremo {
+      0%, 100% { background-color: #ffcc00; } /* amarelo forte */
+      50% { background-color: #ffffff; }
+    }
+
+    .linha-atraso-extremo {
+      animation: piscando-extremo 0.5s infinite;
+    }
+
+    thead.esconder {
+      display: none;
+    }
+
+    #mensagem-status {
+      text-align: center;
+      margin-top: 10px;
+      font-weight: bold;
+      color: #4CAF50;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <table>
+    <thead id="cabecalho-tabela">
+      <tr>
+        <th></th>
+        <th>LIDO SEM RESPOSTA</th>
+        <th>ATRASO</th>
+      </tr>
+    </thead>
+    <tbody id="tabela-dados"></tbody>
+  </table>
+
+  <div id="mensagem-status"></div>
+
+  <script>
+    function calcularMinutosAtraso(dataRecebida) {
+      if (!dataRecebida) return null;
+      const dataAtual = new Date();
+      const dataRecebidaObj = new Date(dataRecebida);
+      const dataAtualGMT3 = new Date(dataAtual.setHours(dataAtual.getHours() - 3));
+      const diffMinutos = Math.floor((dataAtualGMT3 - dataRecebidaObj) / (1000 * 60));
+      return diffMinutos;
+    }
+
+    function emitirBipe() {
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+
+      oscillator.type = 'sine';
+      oscillator.frequency.setValueAtTime(600, audioContext.currentTime);
+
+      gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+      gainNode.gain.linearRampToValueAtTime(0.05, audioContext.currentTime + 0.01);
+      gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + 0.3);
+
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+
+      oscillator.start();
+      oscillator.stop(audioContext.currentTime + 0.35);
+    }
+
+    function carregarDados() {
+      fetch("https://opensheet.elk.sh/1V_PWckSd9MKu69IBw5xdIqIVyA0Yn3ZNJz3jODxVQbc/conta_etiqueta")
+        .then(res => res.json())
+        .then(data => {
+          const tabela = document.getElementById("tabela-dados");
+          const cabecalho = document.getElementById("cabecalho-tabela");
+          const mensagem = document.getElementById("mensagem-status");
+          tabela.innerHTML = '';
+
+          const dadosFiltrados = data
+            .filter(row => row["READ"] || row["READ-LOG"])
+            .map(row => ({
+              ...row,
+              atrasoMin: calcularMinutosAtraso(row["READ-LOG"])
+            }))
+            .sort((a, b) => (b.atrasoMin || 0) - (a.atrasoMin || 0));
+
+          if (dadosFiltrados.length === 0) {
+            cabecalho.classList.add("esconder");
+            mensagem.textContent = "Tudo OK";
+            return;
+          } else {
+            cabecalho.classList.remove("esconder");
+            mensagem.textContent = "";
+          }
+
+          dadosFiltrados.forEach((row, index) => {
+            const tr = document.createElement("tr");
+
+            const tdNumero = document.createElement("td");
+            tdNumero.textContent = index + 1;
+            tr.appendChild(tdNumero);
+
+            const tdContato = document.createElement("td");
+            tdContato.textContent = row["READ"] || "N/A";
+            tr.appendChild(tdContato);
+
+            const tdMinutos = document.createElement("td");
+            tdMinutos.textContent = row.atrasoMin !== null ? `${row.atrasoMin} min` : "N/A";
+            tr.appendChild(tdMinutos);
+
+            if (row.atrasoMin > 20) {
+              tr.classList.add("linha-atraso-extremo");
+            } else if (row.atrasoMin > 7) {
+              tr.classList.add("linha-atraso-forte");
+            } else if (row.atrasoMin > 3) {
+              tr.classList.add("linha-piscando");
+            }
+
+            tabela.appendChild(tr);
+          });
+
+          if (dadosFiltrados.length > 6) {
+            emitirBipe();
+          }
+        });
+    }
+
+    carregarDados();
+    setInterval(carregarDados, 30000);
+  </script>
+</body>
+</html>

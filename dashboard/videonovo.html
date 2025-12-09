@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>MJPEG Fullscreen</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background-color: #000;
+      overflow: hidden;
+    }
+
+    #container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
+
+    #stream {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    #fullscreen-btn {
+      position: absolute;
+      bottom: 10px;
+      right: 5px;
+      padding: 8px 8px;
+      font-size: 10px;
+      background-color: rgba(255, 255, 255, 0.1);
+      color: white;
+      border: 1px solid white;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    #fullscreen-btn:hover {
+      background-color: rgba(255, 255, 255, 0.9);
+      color: red;
+    }
+  </style>
+</head>
+<body>
+  <div id="container">
+    <img id="stream" src="http://192.168.31.2:9911" alt="Stream MJPEG">
+    <button id="fullscreen-btn">Tela Cheia</button>
+  </div>
+
+  <script>
+    const btn = document.getElementById('fullscreen-btn');
+    const container = document.getElementById('container');
+    const stream = document.getElementById('stream');
+    const src = stream.src;
+
+    // Verifica se a imagem carregou corretamente
+    function checkStream() {
+      const testImg = new Image();
+      testImg.onload = function () {
+        // Se carregar, tudo certo — não faz nada
+      };
+      testImg.onerror = function () {
+        console.warn('Stream falhou, tentando novamente...');
+        stream.src = src + '?t=' + new Date().getTime(); // força o reload
+      };
+      testImg.src = src + '?check=' + new Date().getTime();
+    }
+
+    // Checa a cada 30 segundos
+    setInterval(checkStream, 30000);
+
+    // Botão de tela cheia
+    btn.addEventListener('click', () => {
+      if (!document.fullscreenElement) {
+        container.requestFullscreen().catch(err => {
+          alert(`Erro ao entrar em tela cheia: ${err.message}`);
+        });
+      } else {
+        document.exitFullscreen();
+      }
+    });
+  </script>
+</body>
+</html>
