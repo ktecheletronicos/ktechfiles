@@ -70,7 +70,12 @@
     }
 
     // Checa a cada 30 segundos
-    setInterval(checkStream, 30000);
+    setInterval(() => {
+  if (!stream.complete || stream.naturalWidth === 0) {
+    console.warn('Stream travou, recarregando...');
+    stream.src = src + '?t=' + new Date().getTime();
+  }
+}, 10000);
 
     // Botão de tela cheia
     btn.addEventListener('click', () => {
