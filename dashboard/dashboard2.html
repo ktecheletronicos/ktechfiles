@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+    <!--<meta http-equiv="refresh" content="60" >-->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pedidos e Mapa</title>
+	  <!-- Favicon -->
+  <link rel="icon" type="image/x-icon" href="https://atendimento.ktecheletronicos.com.br/favicon.ico"/>
+  <link rel="icon" type="image/png" sizes="192x192" href="https://atendimento.ktecheletronicos.com.br/favicon-192.png"/>
+  <link rel="apple-touch-icon" href="https://atendimento.ktecheletronicos.com.br/favicon-192.png"/>
+    <link rel="stylesheet" href="styles2.css">
+<script>
+    function refreshIframe(id, interval) {
+        setInterval(() => {
+            document.getElementById(id).src += '';
+        }, interval);
+    }
+
+    // Define intervalos diferentes para cada iframe
+    refreshIframe('a', 29000); // Atualiza a cada 29 segundos
+    refreshIframe('b', 600000); // Atualiza a cada 600 segundos
+    refreshIframe('c', 60000); // Atualiza a cada 60 segundos
+</script>
+
+
+</head>
+<body>
+    <div class="iframe-container">
+        <!-- Lado esquerdo (A e B empilhados) -->
+        <div class="left-container">
+            <iframe id="a" src="https://lookerstudio.google.com/embed/reporting/8c3c7d02-8edf-4b16-98a6-cf75a202d2f5/page/wHmPE"></iframe>
+            <iframe id="b" src="videonovo.html" allowfullscreen></iframe>
+			<div class="bottom-row">
+				<iframe id="b1" src="naolidos.html"></iframe>
+				<iframe id="b2" src="lidos_sem_resposta.html"></iframe>
+			</div>
+        </div>
+        
+        <!-- Lado direito (C ocupa toda a altura) -->
+       <div class="right-container">
+			<iframe id="c" src="https://atendimento.ktecheletronicos.com.br/mapa/"></iframe>
+		</div>
+    </div>
+</body>
+</html>
