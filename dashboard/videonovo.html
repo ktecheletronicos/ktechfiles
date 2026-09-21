@@ -2,93 +2,58 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WebRTC Fullscreen.</title>
-
+  <title>RUA_CIMA</title>
   <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      width: 100%;
-      height: 100%;
-      background-color: #000;
-      overflow: hidden;
-    }
-
-    #container {
-      position: relative;
-      width: 100%;
-      height: 100%;
-      background-color: #000;
-    }
-
-    #stream {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      border: none;
-    }
-
+    html, body { margin:0; height:100%; background:#000; overflow:hidden; }
+    #container { position:relative; width:100%; height:100%; }
+    #stream { width:100%; height:100%; object-fit:cover; }
     #fullscreen-btn {
-      position: absolute;
-      bottom: 10px;
-      right: 5px;
-      z-index: 10;
-
-      padding: 8px 8px;
-      font-size: 10px;
-
-      background-color: rgba(255, 255, 255, 0.1);
-      color: white;
-
-      border: 1px solid white;
-      border-radius: 6px;
-
-      cursor: pointer;
-      transition: background-color 0.3s ease;
+      position:absolute; bottom:10px; right:5px; padding:8px; font-size:10px;
+      background:rgba(255,255,255,.1); color:#fff; border:1px solid #fff;
+      border-radius:6px; cursor:pointer; transition:background-color .3s;
     }
-
-    #fullscreen-btn:hover {
-      background-color: rgba(255, 255, 255, 0.9);
-      color: red;
-    }
+    #fullscreen-btn:hover { background:rgba(255,255,255,.9); color:red; }
   </style>
 </head>
-
 <body>
-
   <div id="container">
-
-    <iframe
-      id="stream"
-      src="http://192.168.31.254:1984/stream.html?src=RUA_CIMA"
-      allow="autoplay; fullscreen"
-      allowfullscreen>
-    </iframe>
-
-    <button id="fullscreen-btn">
-      Tela Cheia
-    </button>
-
+    <video id="stream" autoplay muted playsinline></video>
+    <button id="fullscreen-btn">Tela Cheia</button>
   </div>
 
   <script>
-    const btn = document.getElementById('fullscreen-btn');
-    const container = document.getElementById('container');
+    const URL_BASE = 'http://192.168.31.254:1984/api/stream.mp4?src=RUA_CIMA';
+    const video = document.getElementById('stream');
+    let timer;
 
-    // Botão de tela cheia
-    btn.addEventListener('click', () => {
-      if (!document.fullscreenElement) {
-        container.requestFullscreen().catch(err => {
-          alert(`Erro ao entrar em tela cheia: ${err.message}`);
-        });
-      } else {
-        document.exitFullscreen();
-      }
+    function start() {
+      video.src = URL_BASE + '&t=' + Date.now();
+      video.play().catch(() => {});
+    }
+
+    function retry() {
+      clearTimeout(timer);
+      timer = setTimeout(start, 3000);
+    }
+
+    video.addEventListener('error', retry);
+    video.addEventListener('stalled', retry);
+    video.addEventListener('ended', retry);
+
+    // se o vídeo travar (currentTime parado por 15s), reinicia
+    let last = 0;
+    setInterval(() => {
+      if (video.currentTime === last) start();
+      last = video.currentTime;
+    }, 15000);
+
+    start();
+
+    document.getElementById('fullscreen-btn').addEventListener('click', () => {
+      const c = document.getElementById('container');
+      if (!document.fullscreenElement) c.requestFullscreen().catch(e => alert(e.message));
+      else document.exitFullscreen();
     });
   </script>
-
 </body>
 </html>
