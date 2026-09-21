@@ -2,11 +2,14 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>MJPEG Fullscreen</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WebRTC Fullscreen</title>
+
   <style>
     html, body {
       margin: 0;
       padding: 0;
+      width: 100%;
       height: 100%;
       background-color: #000;
       overflow: hidden;
@@ -16,24 +19,33 @@
       position: relative;
       width: 100%;
       height: 100%;
+      background-color: #000;
     }
 
     #stream {
+      position: absolute;
+      top: 0;
+      left: 0;
       width: 100%;
       height: 100%;
-      object-fit: cover;
+      border: none;
     }
 
     #fullscreen-btn {
       position: absolute;
       bottom: 10px;
       right: 5px;
+      z-index: 10;
+
       padding: 8px 8px;
       font-size: 10px;
+
       background-color: rgba(255, 255, 255, 0.1);
       color: white;
+
       border: 1px solid white;
       border-radius: 6px;
+
       cursor: pointer;
       transition: background-color 0.3s ease;
     }
@@ -44,38 +56,27 @@
     }
   </style>
 </head>
+
 <body>
+
   <div id="container">
-    <img id="stream" src="http://192.168.31.254:1984/stream.html?src=RUA_CIMA" alt="Stream MJPEG 2">
-    <button id="fullscreen-btn">Tela Cheia</button>
+
+    <iframe
+      id="stream"
+      src="http://192.168.31.254:1984/stream.html?src=RUA_CIMA"
+      allow="autoplay; fullscreen"
+      allowfullscreen>
+    </iframe>
+
+    <button id="fullscreen-btn">
+      Tela Cheia
+    </button>
+
   </div>
 
   <script>
     const btn = document.getElementById('fullscreen-btn');
     const container = document.getElementById('container');
-    const stream = document.getElementById('stream');
-    const src = stream.src;
-
-    // Verifica se a imagem carregou corretamente
-    function checkStream() {
-      const testImg = new Image();
-      testImg.onload = function () {
-        // Se carregar, tudo certo — não faz nada
-      };
-      testImg.onerror = function () {
-        console.warn('Stream falhou, tentando novamente...');
-        stream.src = src + '?t=' + new Date().getTime(); // força o reload
-      };
-      testImg.src = src + '?check=' + new Date().getTime();
-    }
-
-    // Checa a cada 30 segundos
-    setInterval(() => {
-  if (!stream.complete || stream.naturalWidth === 0) {
-    console.warn('Stream travou, recarregando...');
-    stream.src = src + '?t=' + new Date().getTime();
-  }
-}, 10000);
 
     // Botão de tela cheia
     btn.addEventListener('click', () => {
@@ -88,5 +89,6 @@
       }
     });
   </script>
+
 </body>
 </html>
